@@ -37,42 +37,49 @@ const controller = {
         const date = req.body.date? new Date(req.body.date): new Date();
         const id = req.params._id;
         try {
-
-        const username = User.findById(id).username;
-        const exercise = new Exercise({
-            username: username,
-            description,
-            duration,
-            date,
-            _id: id
-        });
+            const user = await User.findById(id);
+            const exercise = new Exercise({
+                username: user.username,
+                description: description,
+                duration: duration,
+                date: date,
+                userId: user._id
+            });
 
             await exercise.save();
             res.send({
                 username: exercise.username,
                 description: exercise.description,
                 duration: exercise.duration,
-                date: exercise.date,
-                _id: exercise._id.toString()
+                date: exercise.date.toDateString(),
+                _id: exercise.userId.toString()
             })
+
         } catch (error) {
-            res.send({ error: 'Error saving user' });
+            res.send({ error: 'Error saving exercise' });
         }
     },
     getLogs: async (req, res) => {
         const id = req.params._id;
-        const username = User.findById(id).username;
+        const user = await User.findById(id);
+        const username = user.username;
         const from = req.query.from? new Date(req.query.from): new Date(0);
         const to = req.query.to? new Date(req.query.to): new Date();
         const limit = req.query.limit? parseInt(req.query.limit): 0;
 
-        const logs = await Exercise.find({ _id: id, date: { $gte: from, $lte: to } }).limit(limit);
+        let logs = await Exercise.find({ userId: id, date: { $gte: from, $lte: to } }).limit(limit);
+
+        let newlogs = logs.map(log => ({
+            description: log.description,
+            duration: log.duration,
+            date: log.date.toDateString()
+        }));
 
         res.send({
             _id: id,
             username: username,
-            count: logs.length,
-            log: logs
+            count: newlogs.length,
+            log: newlogs
         });
 
     },
