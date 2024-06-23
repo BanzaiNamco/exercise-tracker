@@ -1,5 +1,4 @@
-image:
-  file: .gitpod.dockerfile
+image: gitpod/workspace-node-lts
   
 ports:
   - port: 3000
