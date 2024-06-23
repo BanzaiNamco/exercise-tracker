@@ -1,12 +1,14 @@
 import express from 'express';
 import cors from 'cors';
-import db from './db';
+import db from './model/db.js';
 import bodyParser from 'body-parser';
-import controller from './controller/controller';
+import controller from './controller/controller.js';
+import 'dotenv/config.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-require('dotenv').config();
-
-const port = process.env.PORT;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 

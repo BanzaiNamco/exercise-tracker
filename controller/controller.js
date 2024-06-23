@@ -1,37 +1,42 @@
-import { User } from '../models/userSchema.js';
-import { Exercise } from '../models/exerciseSchema.js';
+import { User } from '../model/userSchema.js';
+import { Exercise } from '../model/exerciseSchema.js';
 
 
 const controller = {
-    addUser: (req, res) => {
+    addUser: async (req, res) => {
         const username = req.body.username;
-        const newUser = new User({ username });
-        newUser.save((err, data) => {
-            if (err) {
-                res.send({ error: 'Error saving user' });
-            } else {
-                res.send({
-                    username: data.username,
-                    _id: data._id
-                });
-            }
-        });
+        
+        try {
+            const newUser = new User({ username });
+            await newUser.save();
+            res.send({
+                username: newUser.username,
+                _id: newUser._id.toString()
+            })
+        } catch (error) {
+            res.send({ error: 'Error saving user' });
+        }
 
     },
-    getUsers: (req, res) => {
-        User.find({}, (err, data) => {
-            if (err) {
-                res.send({ error: 'Error getting users' });
+    getUsers: async (req, res) => {
+
+        try {
+            const users = await User.find({});
+            if (users.length > 0) {
+                res.send(users.map(user => ({ username: user.username, _id: user._id.toString() })));
             } else {
-                res.send(data.map(user => ({ username: user.username, _id: user._id })));
+                res.send({});
             }
-        });
+        } catch (error) {
+            res.send({ error: 'Error fetching users' });
+        }
     },
-    addExercise: (req, res) => {
+    addExercise: async (req, res) => {
         const description = req.body.description;
         const duration = req.body.duration;
         const date = req.body.date? new Date(req.body.date): new Date();
         const id = req.params._id;
+        try {
 
         const username = User.findById(id).username;
         const exercise = new Exercise({
@@ -42,20 +47,17 @@ const controller = {
             _id: id
         });
 
-        exercise.save((err, data) => {
-            if (err) {
-                res.send({ error: 'Error saving exercise' });
-            } else {
-                res.send({
-                    username: data.username,
-                    description: data.description,
-                    duration: data.duration,
-                    date: data.date,
-                    _id: data._id
-                });
-            }
-        });
-
+            await exercise.save();
+            res.send({
+                username: exercise.username,
+                description: exercise.description,
+                duration: exercise.duration,
+                date: exercise.date,
+                _id: exercise._id.toString()
+            })
+        } catch (error) {
+            res.send({ error: 'Error saving user' });
+        }
     },
     getLogs: async (req, res) => {
         const id = req.params._id;
@@ -77,4 +79,4 @@ const controller = {
 
 };
 
-module.exports = controller;
+export default controller;
